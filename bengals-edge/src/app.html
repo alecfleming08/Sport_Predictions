@@ -1,0 +1,602 @@
+<title>Bengals Edge</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: scouting-sheet tool — sticky team bar with team picker + 4 tabs; list/detail split on wide screens; Ask Claude drawer */
+:root{
+  --bg:#f6f4f1; --panel:#ffffff; --ink:#1a1714; --muted:#6c645c; --line:#e3ddd6;
+  --orange:#e8540f; --orange-ink:#b9400a; --stripe:#1a1714; --on-stripe:#ffffff; --on-stripe-muted:#c9bfb5;
+  --soft:#1f8a4c; --soft-bg:#e3f3e9; --tough:#c0362c; --tough-bg:#f8e3e0; --mid-bg:#efebe6;
+  --team1:#FB4F14; --team2:#000000;
+  --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141210; --panel:#1d1a17; --ink:#f1ece6; --muted:#a39a90; --line:#332e29;
+  --orange:#ff6a1f; --orange-ink:#ff8a4a; --stripe:#000000;
+  --soft:#4cc47d; --soft-bg:#183323; --tough:#ff7a6e; --tough-bg:#3a1c19; --mid-bg:#2a2622; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141210; --panel:#1d1a17; --ink:#f1ece6; --muted:#a39a90; --line:#332e29;
+  --orange:#ff6a1f; --orange-ink:#ff8a4a; --stripe:#000000;
+  --soft:#4cc47d; --soft-bg:#183323; --tough:#ff7a6e; --tough-bg:#3a1c19; --mid-bg:#2a2622; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--stripe)}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:1180px;margin:0 auto}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--stripe);color:var(--on-stripe);border-bottom:4px solid var(--team1);box-shadow:0 4px 0 var(--team2)}
+header .wrap{padding-block:10px 0;display:flex;flex-direction:column;gap:8px}
+.brand{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.brand h1{font-family:var(--f-display);font-weight:800;font-size:28px;letter-spacing:.02em;margin:0;text-transform:uppercase;line-height:1}
+.brand h1 span{color:var(--orange)}
+.brand .rec{font-family:var(--f-mono);font-size:12px;color:var(--on-stripe-muted)}
+.brand select{margin-left:auto;background:var(--stripe);color:var(--on-stripe);border:1px solid #4a433d;font:600 13px var(--f-body);padding:6px 8px;border-radius:4px;max-width:100%}
+nav{display:flex;gap:2px;overflow-x:auto}
+nav button{font-family:var(--f-display);font-weight:700;font-size:16px;letter-spacing:.06em;text-transform:uppercase;background:none;border:0;color:var(--on-stripe-muted);padding:8px 12px 10px;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+nav button[aria-selected="true"]{color:var(--on-stripe);border-bottom-color:var(--orange)}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+main .wrap{padding-block:20px 90px;display:flex;flex-direction:column;gap:16px}
+h2{font-family:var(--f-display);font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:.03em;margin:0;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:700;font-size:17px;text-transform:uppercase;letter-spacing:.05em;margin:0;color:var(--muted)}
+.muted{color:var(--muted)} .small{font-size:12px}
+td,th,.mono{font-variant-numeric:tabular-nums}
+.chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.chips .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-right:2px}
+.chip{font:600 12px var(--f-body);letter-spacing:.04em;text-transform:uppercase;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:6px 10px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px;min-width:0}
+.split{display:grid;grid-template-columns:1fr;gap:16px}
+@media (min-width:900px){.split{grid-template-columns:290px 1fr}}
+.plist{display:flex;flex-direction:column;gap:6px}
+.prow{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px;cursor:pointer;text-align:left;color:var(--ink);font:inherit;width:100%}
+.prow[aria-current="true"]{border-color:var(--orange);box-shadow:inset 3px 0 0 var(--orange)}
+.pos{font:700 12px var(--f-mono);color:var(--orange-ink)}
+.prow b{font-weight:600}
+.kv{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-align:right}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.stat{border-left:2px solid var(--line);padding-left:10px}
+.stat .v{font:600 22px var(--f-mono);line-height:1.1}
+.stat .l{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:right}
+th{font:600 11px var(--f-body);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--panel);position:sticky;top:0}
+th.l,td.l{text-align:left}
+td{font-family:var(--f-mono)}
+tr.inj td{opacity:.5;text-decoration:line-through;text-decoration-color:var(--tough)}
+tr.inj td.keep{text-decoration:none;opacity:1}
+tr.click{cursor:pointer} tr.click:hover td{background:var(--mid-bg)}
+th.sort{cursor:pointer} th.sorted{color:var(--orange-ink)}
+.rk{display:inline-block;min-width:30px;padding:1px 6px;border-radius:3px;font:600 11px var(--f-mono);text-align:center}
+.rk.tough{background:var(--tough-bg);color:var(--tough)} .rk.soft{background:var(--soft-bg);color:var(--soft)} .rk.mid{background:var(--mid-bg);color:var(--muted)}
+.badge{display:inline-block;font:600 10px var(--f-body);letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border-radius:3px;background:var(--tough-bg);color:var(--tough);text-decoration:none;white-space:nowrap}
+.badge.likely,.badge.warn{background:var(--mid-bg);color:var(--orange-ink)}
+.v-over,.v-sover{background:var(--soft-bg);color:var(--soft)} .v-sover{outline:1px solid var(--soft)}
+.v-under,.v-funder{background:var(--tough-bg);color:var(--tough)} .v-funder{outline:1px solid var(--tough)}
+.v-none,.v-low,.v-need{background:var(--mid-bg);color:var(--muted)}
+.ou-o{color:var(--soft);font-weight:600} .ou-u{color:var(--tough);font-weight:600}
+.toggle{display:flex;align-items:center;gap:8px;font-size:13px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);align-items:center}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.grid2{display:grid;grid-template-columns:1fr;gap:16px}
+@media (min-width:760px){.grid2{grid-template-columns:1fr 1fr}}
+ul.sw-list{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+ul.sw-list li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding-bottom:5px}
+ul.sw-list li span:last-child{font-family:var(--f-mono);font-size:12px;white-space:nowrap}
+.gamehead{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px}
+.gamehead .opp{font-family:var(--f-display);font-weight:800;font-size:40px;line-height:1;text-transform:uppercase}
+.pm{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.pm .panel{display:flex;flex-direction:column;gap:4px}
+.pm .big{font:600 26px var(--f-mono)}
+.up{color:var(--soft)} .down{color:var(--tough)}
+svg text{fill:var(--muted);font-family:var(--f-mono);font-size:10px}
+details{font-size:13px} summary{cursor:pointer;font-weight:600}
+details p,details li{max-width:70ch;color:var(--muted)}
+input.line{width:64px;font:600 13px var(--f-mono);padding:4px 6px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink);text-align:right}
+input.line.api{border-color:var(--orange)}
+.empty{padding:20px;text-align:center;color:var(--muted)}
+th[data-tip]{cursor:help;text-decoration:underline dotted var(--muted);text-underline-offset:3px}
+th.sort[data-tip]{cursor:pointer}
+.tip{position:fixed;z-index:20;max-width:min(280px,calc(100vw - 32px));background:var(--ink);color:var(--bg);font:400 12.5px/1.45 var(--f-body);padding:8px 10px;border-radius:6px;box-shadow:0 6px 18px rgba(0,0,0,.25);pointer-events:none;text-transform:none;letter-spacing:0}
+.tip b{display:block;font-weight:600;margin-bottom:2px}
+.note{border-left:3px solid var(--orange);padding:8px 12px;background:var(--panel);font-size:13px;max-width:80ch}
+.pickcard{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center}
+footer .wrap{padding-block:0 30px;font-size:12px;color:var(--muted)}
+footer a{color:var(--orange-ink)}
+/* Ask Claude */
+.ask-fab{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:8;background:var(--orange);color:#fff;border:0;border-radius:999px;padding:12px 18px;font:700 15px var(--f-display);letter-spacing:.06em;text-transform:uppercase;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.drawer{position:fixed;z-index:9;right:0;bottom:0;width:min(440px,100%);height:min(640px,85%);background:var(--panel);border:1px solid var(--line);border-radius:10px 10px 0 0;display:flex;flex-direction:column;box-shadow:0 -6px 30px rgba(0,0,0,.25);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+.drawer .hd{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.drawer .hd h2{font-size:18px;flex:1}
+.drawer .hd button{background:none;border:1px solid var(--line);color:var(--ink);border-radius:4px;padding:4px 8px;cursor:pointer;font:600 12px var(--f-body)}
+.msgs{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:92%;padding:8px 11px;border-radius:8px;white-space:pre-wrap;word-wrap:break-word;font-size:14px}
+.msg.u{align-self:flex-end;background:var(--ink);color:var(--bg)}
+.msg.a{align-self:flex-start;background:var(--mid-bg);color:var(--ink)}
+.msg.sys{align-self:center;background:none;color:var(--muted);font-size:12px;padding:0}
+.sugg{display:flex;gap:6px;flex-wrap:wrap}
+.sugg button{font:500 12px var(--f-body);border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:5px 10px;cursor:pointer;text-align:left}
+.composer{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--line)}
+.composer textarea{flex:1;resize:none;height:44px;font:14px var(--f-body);padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.composer button{background:var(--orange);color:#fff;border:0;border-radius:6px;padding:0 14px;font:700 14px var(--f-display);letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
+.composer button:disabled{opacity:.5;cursor:default}
+@media (prefers-reduced-motion:no-preference){.panel,.tbl{animation:in .25s ease-out both}@keyframes in{from{transform:translateY(4px)}to{transform:none}}}
+</style>
+
+<header>
+  <div class="wrap">
+    <div class="brand"><h1 id="brandname">Bengals <span>Edge</span></h1><span class="rec" id="rec"></span>
+      <label for="teamsel" class="small" style="position:absolute;left:-9999px">Team</label><select id="teamsel" aria-label="Team"></select></div>
+    <nav role="tablist" aria-label="Views">
+      <button role="tab" id="tab-players" data-view="players" aria-selected="true">Player log</button>
+      <button role="tab" id="tab-next" data-view="next" aria-selected="false">Next game</button>
+      <button role="tab" id="tab-picks" data-view="picks" aria-selected="false">Weekly picks</button>
+      <button role="tab" id="tab-defenses" data-view="defenses" aria-selected="false">Defense ranks</button>
+    </nav>
+  </div>
+</header>
+<main><div class="wrap" id="view"><div class="empty">Loading season data…</div></div></main>
+<footer><div class="wrap" id="foot"></div></footer>
+
+<button class="ask-fab" id="askfab" hidden>Ask Claude</button>
+<section class="drawer" id="drawer" hidden aria-label="Ask Claude">
+  <div class="hd"><h2>Ask Claude</h2><button id="askclear">New chat</button><button id="askclose" aria-label="Close">Close</button></div>
+  <div class="msgs" id="msgs"></div>
+  <form class="composer" id="askform"><textarea id="askinput" placeholder="Ask about a player, line or matchup…" aria-label="Your question"></textarea><button id="asksend" type="submit">Send</button></form>
+</section>
+
+<script>
+(async function(){
+const $ = (s, el=document) => el.querySelector(s);
+const $$ = (s, el=document) => [...el.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let D = window.__DATA__;
+if (!D) { try { D = await (await fetch('data.json', {cache:'no-store'})).json(); } catch(e) { $('#view').innerHTML = '<div class="empty">Could not load data.json. Run <code>node scripts/build-data.mjs</code> first.</div>'; return; } }
+
+const store = { get(k,d){ try{ const v = localStorage.getItem('be:'+k); return v==null?d:JSON.parse(v);}catch(e){return d;} }, set(k,v){ try{ localStorage.setItem('be:'+k, JSON.stringify(v)); }catch(e){} } };
+const M = Object.fromEntries(D.metrics.map(m => [m.k, m]));
+const TEAMS = Object.keys(D.teams).sort((a,b) => D.teamsInfo[a].name.localeCompare(D.teamsInfo[b].name));
+const nTeams = Object.keys(D.defenses).length;
+const VIEWS = ['players','next','picks','defenses'];
+const S = { team: store.get('team','CIN'), view: store.get('view','players'), pos: 'ALL', player: store.get('player', null), stat: null, inclInj: false, nextStat: store.get('nextStat', null), defGrp: store.get('defGrp','Overall'), defSort: null };
+const h = (location.hash||'').slice(1).toUpperCase();
+if (D.teams[h]) S.team = h; else if (VIEWS.includes(h.toLowerCase())) S.view = h.toLowerCase();
+if (!D.teams[S.team]) S.team = 'CIN';
+
+// ---------- stats & model ----------
+const STATS = {
+  pass_yds: { label: 'Pass yds', short: 'Pass yds', f: s => s.pyd },
+  rec_yds: { label: 'Receiving yds', short: 'Rec yds', f: s => s.yds },
+  rec: { label: 'Receptions', short: 'Rec', f: s => s.rec },
+  rush_yds: { label: 'Rushing yds', short: 'Rush yds', f: s => s.ryd },
+  scrim_yds: { label: 'Scrimmage yds', short: 'Scrim yds', f: s => s.ryd + s.yds },
+};
+const statsFor = pos => pos === 'QB' ? ['pass_yds','rush_yds'] : ['rec_yds','rec','rush_yds','scrim_yds'];
+const defaultStat = pos => ({ QB: 'pass_yds', RB: 'rush_yds', WR: 'rec_yds', TE: 'rec_yds' })[pos];
+const fk = (pos, stat) => D.statFactor[stat]?.[pos];
+const shrink = (f, g) => 1 + (f - 1) * g / (g + 3);
+const team = T => D.teams[T];
+const pgame = (T, gid) => team(T).played.find(g => g.gid === gid);
+function factorPast(T, gid, pos, stat){ const g = pgame(T, gid), k = fk(pos, stat); const v = g?.oppProf?.[k], L = D.league[k]; return v != null && L ? shrink(v / L, g.oppProf.games) : 1; }
+function factorNext(opp, pos, stat){ const k = fk(pos, stat), d = D.defenses[opp]; const v = d?.[k], L = D.league[k]; return v != null && L ? shrink(v / L, d.games) : 1; }
+const clean = (p, incl) => incl ? p.games : p.games.filter(g => !g.inj);
+const mean = a => a.length ? a.reduce((x,y)=>x+y,0)/a.length : null;
+const avgSnap = p => mean(clean(p).filter(g => g.sp != null).map(g => g.sp));
+function model(T, p, stat, opp){
+  const cg = clean(p), f = STATS[stat].f;
+  const vals = cg.map(g => f(g.s));
+  const adj = cg.map(g => f(g.s) / factorPast(T, g.gid, p.pos, stat));
+  const base = mean(adj), fn = opp ? factorNext(opp, p.pos, stat) : 1;
+  return { n: cg.length, vals, raw: mean(vals), adj: base, f: fn, proj: base == null ? null : base * fn };
+}
+// lines: manual entry (this browser) wins, else sportsbook consensus
+const lkey = (gid, pid, stat) => `line:${gid}:${pid}:${stat}`;
+function getLine(gid, pid, stat){ const m = store.get(lkey(gid,pid,stat), null); if (m != null && m !== '') return { line: Number(m), src: 'manual' };
+  const a = D.lines?.[gid]?.[pid]?.[stat]; return a ? { line: a.line, src: 'book', over: a.over, under: a.under, books: a.books } : null; }
+function verdict(m, line){
+  if (line == null) return { k: 'need', label: 'Add line' };
+  const hits = m.vals.filter(v => v > line).length, hr = m.n ? hits / m.n : null;
+  const edge = m.proj == null ? null : (m.proj - line) / Math.max(line, 1);
+  const base = { edge, hits, hr };
+  if (m.n < 3 || edge == null) return { ...base, k: 'low', label: 'Small sample' };
+  if (edge >= 0.25 && hr >= 0.6) return { ...base, k: 'sover', label: 'Strong over' };
+  if (edge >= 0.12 && hr >= 0.5) return { ...base, k: 'over', label: 'Lean over' };
+  if (edge <= -0.25 && hr <= 0.4) return { ...base, k: 'funder', label: 'Far under' };
+  if (edge <= -0.12 && hr <= 0.5) return { ...base, k: 'under', label: 'Lean under' };
+  return { ...base, k: 'none', label: 'No edge' };
+}
+const vchip = v => `<span class="badge v-${v.k}">${v.label}</span>`;
+
+// ---------- formatting ----------
+const fmt = (k, v) => { if (v == null) return '—'; if (M[k]?.pct) return (v*100).toFixed(1)+'%'; const a = Math.abs(v); return a < 1 ? v.toFixed(3) : a < 10 ? v.toFixed(2) : v.toFixed(1); };
+const one = v => v == null || !isFinite(v) ? '—' : (Math.round(v*10)/10).toFixed(1);
+const pct = v => v == null ? '—' : (v > 0 ? '+' : '') + Math.round(v * 100) + '%';
+function rankChip(k, rank){ if (rank == null) return '<span class="rk mid">—</span>'; const m = M[k]; if (!m || m.dir === 0) return `<span class="rk mid">${rank}</span>`;
+  const cls = rank <= Math.round(nTeams*0.3) ? 'tough' : rank > nTeams - Math.round(nTeams*0.3) ? 'soft' : 'mid'; return `<span class="rk ${cls}" title="${esc(m.label)}: rank ${rank} of ${nTeams} (1 = toughest)">${rank}</span>`; }
+const tname = T => D.teamsInfo[T]?.name || T;
+const nextGame = T => team(T).upcoming[0];
+const record = T => { const p = team(T).played; const w = p.filter(g=>g.result==='W').length, l = p.filter(g=>g.result==='L').length, t = p.filter(g=>g.result==='T').length; return `${w}-${l}${t?'-'+t:''}`; };
+
+// ---------- header ----------
+$('#teamsel').innerHTML = TEAMS.map(t => `<option value="${t}">${esc(tname(t))}</option>`).join('');
+$('#teamsel').onchange = e => setTeam(e.target.value);
+function setTeam(T, player){ S.team = T; store.set('team', T); S.player = player || null; S.pos = 'ALL'; S.stat = null; if (!['players','next'].includes(S.view)) S.view = 'players'; store.set('view', S.view); render(); window.scrollTo(0,0); }
+$$('nav button').forEach(b => b.addEventListener('click', () => { S.view = b.dataset.view; store.set('view', S.view); render(); window.scrollTo(0,0); }));
+$('#foot').innerHTML = `Updated ${new Date(D.meta.generated).toLocaleString()} · Sources: ${D.meta.sources.map(s=>`<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name)}</a>`).join(' · ')}`;
+
+function render(){
+  const ti = D.teamsInfo[S.team];
+  $('#brandname').innerHTML = `${esc(ti.nick)} <span>Edge</span>`;
+  $('#teamsel').value = S.team;
+  $('#rec').textContent = `${D.meta.season} · ${record(S.team)} · league data through Wk ${D.meta.lastWeekWithPbp}`;
+  document.documentElement.style.setProperty('--team1', ti.c1 || '#888');
+  document.documentElement.style.setProperty('--team2', ti.c2 || '#444');
+  $$('nav button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.view === S.view)));
+  $(`nav button[data-view="${S.view}"]`)?.scrollIntoView({block:'nearest', inline:'nearest'});
+  ({ players: renderPlayers, next: renderNext, picks: renderPicks, defenses: renderDefenses })[S.view]();
+}
+
+// ---------- PLAYER LOG ----------
+function renderPlayers(){
+  const T = S.team, ps = team(T).players;
+  const list = ps.filter(p => S.pos === 'ALL' || p.pos === S.pos);
+  if (!S.player || !ps.find(p => p.id === S.player)) S.player = (ps.find(p => p.pos === 'WR') || ps[0])?.id;
+  const p = ps.find(x => x.id === S.player);
+  if (!p) { $('#view').innerHTML = '<div class="empty">No player data for this team yet.</div>'; return; }
+  $('#view').innerHTML = `
+  <div class="chips" role="group" aria-label="Position">${['ALL','QB','RB','WR','TE'].map(x => `<button class="chip" data-pos="${x}" aria-pressed="${S.pos===x}">${x}</button>`).join('')}</div>
+  <div class="split">
+    <div class="plist">${list.map(x => { const m = model(T, x, defaultStat(x.pos)); const inj = x.games.filter(g=>g.inj).length;
+      return `<button class="prow" data-id="${x.id}" aria-current="${x.id===S.player}"><span class="pos">${x.pos}</span><span><b>${esc(x.name)}</b><br><span class="small muted">${m.n} clean game${m.n===1?'':'s'}${inj?` · ${inj} injury-excluded`:''}</span></span><span class="kv">${one(m.raw)}<br>${STATS[defaultStat(x.pos)].short.toLowerCase()}</span></button>`; }).join('')}</div>
+    <div id="pdetail" style="display:flex;flex-direction:column;gap:16px;min-width:0"></div>
+  </div>`;
+  $$('[data-pos]').forEach(b => b.onclick = () => { S.pos = b.dataset.pos; renderPlayers(); });
+  $$('.prow').forEach(b => b.onclick = () => { S.player = b.dataset.id; S.stat = null; store.set('player', S.player); renderPlayers(); if (innerWidth < 900) $('#pdetail').scrollIntoView({behavior:'smooth'}); });
+  renderPlayerDetail(T, p);
+}
+
+function renderPlayerDetail(T, p){
+  if (!S.stat || !statsFor(p.pos).includes(S.stat)) S.stat = defaultStat(p.pos);
+  const stat = S.stat, ST = STATS[stat];
+  const used = clean(p, S.inclInj);
+  const tot = k => used.reduce((s, g) => s + (g.s[k] || 0), 0);
+  const avgOf = f => mean(used.map(g => f(g.s)));
+  const snap = mean(used.filter(g=>g.sp!=null).map(g=>g.sp));
+  const tiles = p.pos === 'QB'
+    ? [['Pass yds/g', avgOf(s=>s.pyd)], ['Comp %', tot('att') ? tot('cmp')/tot('att')*100 : null], ['TD : INT', `${tot('ptd')} : ${tot('int')}`], ['Rush yds/g', avgOf(s=>s.ryd)], ['Sacks/g', avgOf(s=>s.sk)]]
+    : [['Rec yds/g', avgOf(s=>s.yds)], ['Rec/g', avgOf(s=>s.rec)], ['Rush yds/g', avgOf(s=>s.ryd)], ['Scrim yds/g', avgOf(s=>s.ryd+s.yds)], ['Snap %', snap!=null? snap*100 : null]];
+  const cols = {
+    QB: [['Cmp/Att', g => `${g.s.cmp}/${g.s.att}`], ['Yds', g => g.s.pyd], ['TD', g => g.s.ptd], ['INT', g => g.s.int], ['Sk', g => g.s.sk], ['EPA', g => one(g.s.pepa)], ['Car', g => g.s.car], ['Rush', g => g.s.ryd], ['Blitzed', g => g.x.blz==null?'—':Math.round(g.x.blz*100)+'%']],
+    RB: [['Car', g => g.s.car], ['Rush', g => g.s.ryd], ['YPC', g => g.s.car? (g.s.ryd/g.s.car).toFixed(1):'—'], ['Inside', g => g.x.rin.join('-')], ['Outside', g => g.x.rout.join('-')], ['Tgt', g => g.s.tgt], ['Rec', g => g.s.rec], ['Rec yds', g => g.s.yds], ['TD', g => g.s.rtd + g.s.td]],
+    WR: [['Tgt', g => g.s.tgt], ['Rec', g => g.s.rec], ['Yds', g => g.s.yds], ['TD', g => g.s.td], ['aDOT', g => g.x.adot ?? '—'], ['Outside', g => g.x.out.join('-')], ['Middle', g => g.x.mid.join('-')], ['Deep', g => g.x.deep.join('-')], ['YAC', g => g.s.yac], ['Tgt %', g => Math.round((g.s.ts||0)*100)+'%']],
+  }; cols.TE = cols.WR;
+  const pm = D.posMetrics[p.pos];
+  const m = model(T, p, stat);
+  const rows = p.games.map(g => { const tg = pgame(T, g.gid); const f = factorPast(T, g.gid, p.pos, stat), y = ST.f(g.s);
+    const L = getLine(g.gid, p.id, stat); const exp = m.adj == null ? null : m.adj * f;
+    const ou = L ? (y > L.line ? '<span class="ou-o">O</span>' : y < L.line ? '<span class="ou-u">U</span>' : 'P') : '';
+    return `<tr class="${g.inj?'inj':''}">
+      <td class="l keep">Wk ${g.w}</td>
+      <td class="l keep">${tg.home?'vs':'@'} <b>${tg.opp}</b> <span class="muted small">${tg.result} ${tg.us}-${tg.them}</span>${g.inj?` <span class="badge ${g.inj.lv==='likely'?'likely':''}" title="${esc(g.inj.note)}">${g.inj.lv==='likely'?'Likely inj.':'Injured'}</span>`:''}</td>
+      <td>${g.sn} <span class="muted">${g.sp!=null?Math.round(g.sp*100)+'%':''}</span></td>
+      ${cols[p.pos].map(c => `<td>${esc(c[1](g))}</td>`).join('')}
+      ${pm.map(k => `<td class="keep">${rankChip(k, D.defenses[tg.opp]?.rank?.[k])}</td>`).join('')}
+      <td class="keep"><b>${y}</b></td><td class="keep">${L ? one(L.line) + ' ' + ou : '<span class="muted">—</span>'}</td><td class="keep">${one(exp)}</td></tr>`; }).join('');
+  const injNotes = p.games.filter(g => g.inj).map(g => `<li>Wk ${g.w}: ${esc(g.inj.note)}</li>`).join('');
+  const ng = nextGame(T);
+  $('#pdetail').innerHTML = `
+  <div class="panel" style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline">
+      <h2>${esc(p.name)} <span class="muted" style="font-size:16px">${p.pos}${p.jersey?' · #'+p.jersey:''} · ${T}</span></h2>
+      <label class="toggle"><input type="checkbox" id="inclInj" ${S.inclInj?'checked':''}> Include injury games</label>
+    </div>
+    <div class="stats">${tiles.map(([l,v]) => `<div class="stat"><div class="v">${typeof v === 'string' ? v : one(v)}</div><div class="l">${l}</div></div>`).join('')}</div>
+    ${ng && m.proj != null ? `<div class="small muted">Next: ${ng.home?'vs':'@'} ${ng.opp} (Wk ${ng.week}). Model ${ST.label.toLowerCase()}: <b class="mono" style="color:var(--ink)">${one(m.adj * factorNext(ng.opp, p.pos, stat))}</b>${(() => { const L = getLine(ng.gid, p.id, stat); return L ? ` vs line <b class="mono" style="color:var(--ink)">${one(L.line)}</b> ${vchip(verdict({...m, proj: m.adj*factorNext(ng.opp,p.pos,stat)}, L.line))}` : ''; })()}</div>` : ''}
+  </div>
+  <div class="chips" role="group" aria-label="Stat"><span class="lbl">Stat</span>${statsFor(p.pos).map(s => `<button class="chip" data-stat="${s}" aria-pressed="${s===stat}">${STATS[s].label}</button>`).join('')}</div>
+  ${chart(T, p, stat, m)}
+  <div class="tbl"><table>
+    <thead><tr><th class="l">Wk</th><th class="l">Opponent</th><th>Snaps</th>${cols[p.pos].map(c=>`<th>${c[0]}</th>`).join('')}
+    ${pm.map(k => `<th title="${esc(M[k].label)}">${esc(shortLabel(k))}</th>`).join('')}<th>${esc(ST.short)}</th><th title="Sportsbook line and whether he went over (O) or under (U)">Line</th><th title="What the model expected given that defense">Model</th></tr></thead>
+    <tbody>${rows}</tbody></table></div>
+  <div class="legend"><span><span class="sw" style="background:var(--tough)"></span>Tough defense (top 30%)</span><span><span class="sw" style="background:var(--soft)"></span>Soft defense (bottom 30%)</span><span>Split cells = targets-yards (or carries-yards)</span></div>
+  ${injNotes ? `<details class="panel"><summary>Why games were excluded</summary><ul>${injNotes}</ul><p>Injured = the play-by-play logged him as hurt during that game. Likely = his snap share collapsed and a new injury appeared on the next week's report.</p></details>` : ''}
+  ${p.report.length ? `<details class="panel"><summary>Injury report history</summary><ul>${p.report.map(i=>`<li>Wk ${i.w}: ${esc(i.inj||'—')} ${i.st?'· '+esc(i.st):''} ${i.pr?'· '+esc(i.pr):''}</li>`).join('')}</ul></details>` : ''}`;
+  $('#inclInj').onchange = e => { S.inclInj = e.target.checked; renderPlayerDetail(T, p); };
+  $$('[data-stat]').forEach(b => b.onclick = () => { S.stat = b.dataset.stat; renderPlayerDetail(T, p); });
+}
+function shortLabel(k){ return ({pass_epa:'EPA/db', pass_yds_g:'Pass yd/g', sack_rate:'Sack%', blitz:'Blitz%', qb_rush_g:'QB rush/g', rb_rush_g:'RB rush/g', rb_ypc:'RB YPC', rb_rec_g:'RB rec/g', stuff:'Stuff%', box:'Box', wr_yds_g:'WR yd/g', wr_rec_g:'WR rec/g', wr_out_ypt:'Out Y/T', wr_mid_ypt:'Mid Y/T', deep_yds_g:'Deep yd/g', te_yds_g:'TE yd/g', te_rec_g:'TE rec/g', te_ypt:'TE Y/T'})[k] || k; }
+
+function chart(T, p, stat, m){
+  const ST = STATS[stat], gs = p.games; if (!gs.length) return '';
+  const w = 640, ht = 200, pad = {l:34, r:8, t:14, b:34};
+  const pts = gs.map(g => { const L = getLine(g.gid, p.id, stat); return { g, act: ST.f(g.s), line: L?.line ?? null, exp: m.adj == null ? null : m.adj * factorPast(T, g.gid, p.pos, stat) }; });
+  const max = Math.max(stat === 'rec' ? 4 : 10, ...pts.flatMap(x => [x.act, x.line ?? 0, x.exp ?? 0])) * 1.12;
+  const step = [1,2,5,10,20,25,50,100,150].find(s => max / s <= 5) || 200;
+  const y = v => pad.t + (ht - pad.t - pad.b) * (1 - v / max);
+  const bw = (w - pad.l - pad.r) / gs.length;
+  let grid = ''; for (let v = 0; v <= max; v += step) grid += `<line x1="${pad.l}" x2="${w-pad.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${pad.l-6}" y="${y(v)+3}" text-anchor="end">${v}</text>`;
+  const anyLine = pts.some(x => x.line != null);
+  const bars = pts.map((x, i) => { const tg = pgame(T, x.g.gid); const bx = pad.l + i*bw + bw*0.2, bwid = bw*0.6;
+    return `<rect x="${bx}" y="${y(x.act)}" width="${bwid}" height="${Math.max(0, y(0)-y(x.act))}" fill="${x.g.inj?'var(--line)':'var(--orange)'}" rx="2"><title>Wk ${x.g.w} ${tg.opp}: ${x.act}${x.g.inj?' (injury game)':''}</title></rect>
+      ${x.line!=null?`<line x1="${bx-5}" x2="${bx+bwid+5}" y1="${y(x.line)}" y2="${y(x.line)}" stroke="var(--ink)" stroke-width="2.5"><title>Sportsbook line: ${x.line}</title></line>`:''}
+      ${x.exp!=null?`<circle cx="${bx+bwid/2}" cy="${y(x.exp)}" r="4" fill="var(--panel)" stroke="var(--ink)" stroke-width="1.5"><title>Model expected vs ${tg.opp}: ${one(x.exp)}</title></circle>`:''}
+      <text x="${bx+bwid/2}" y="${ht-pad.b+14}" text-anchor="middle">${tg.opp}</text><text x="${bx+bwid/2}" y="${ht-pad.b+26}" text-anchor="middle">Wk${x.g.w}</text>`; }).join('');
+  return `<div class="panel"><h3>${ST.label} by game</h3>
+    <div style="overflow-x:auto"><svg viewBox="0 0 ${w} ${ht}" width="100%" style="min-width:${Math.min(520, 110*gs.length)}px" role="img" aria-label="${ST.label} per game">${grid}<line x1="${pad.l}" x2="${w-pad.r}" y1="${y(0)}" y2="${y(0)}" stroke="var(--muted)"/>${bars}</svg></div>
+    <div class="legend"><span><span class="sw" style="background:var(--orange)"></span>Actual</span><span><span class="sw" style="background:var(--ink);height:3px"></span>Sportsbook line</span><span><span class="sw" style="background:var(--panel);border:1.5px solid var(--ink);border-radius:50%"></span>Model expected</span><span><span class="sw" style="background:var(--line)"></span>Injury game</span></div>
+    ${anyLine ? '' : '<p class="small muted" style="margin:6px 0 0">No sportsbook lines saved for these games yet. Lines appear once the data job runs with a prop-odds key (see the Next game tab), or when you type a line in.</p>'}</div>`;
+}
+
+// ---------- NEXT GAME ----------
+function renderNext(){
+  const T = S.team, ug = nextGame(T);
+  if (!ug) { $('#view').innerHTML = '<div class="empty">No upcoming games on the schedule.</div>'; return; }
+  const def = D.defenses[ug.opp], tg = team(T);
+  const dirM = D.metrics.filter(m => m.dir !== 0 && def.rank?.[m.k] != null);
+  const strengths = dirM.filter(m => def.rank[m.k] <= 8).sort((a,b) => def.rank[a.k]-def.rank[b.k]);
+  const weak = dirM.filter(m => def.rank[m.k] >= nTeams - 7).sort((a,b) => def.rank[b.k]-def.rank[a.k]);
+  const li = m => `<li><span>${esc(m.label)}</span><span>${fmt(m.k, def[m.k])} ${rankChip(m.k, def.rank[m.k])}</span></li>`;
+  const when = new Date(ug.date + 'T12:00:00');
+  const statOpts = ['pass_yds','rec_yds','rec','rush_yds','scrim_yds'];
+  if (!statOpts.includes(S.nextStat)) S.nextStat = 'rec_yds';
+  const stat = S.nextStat;
+  const posCards = [['QB','pass_yds'],['RB','rush_yds'],['WR','rec_yds'],['TE','rec_yds']].map(([pos, st]) => { const k = fk(pos, st), f = factorNext(ug.opp, pos, st), d = f - 1;
+    return `<div class="panel"><h3>vs ${pos}</h3><div class="big ${d>0.02?'up':d<-0.02?'down':''}">${pct(d)}</div><div class="small muted">${esc(M[k].label)}: ${fmt(k, def[k])} (lg ${fmt(k, D.league[k])}) ${rankChip(k, def.rank[k])}</div></div>`; }).join('');
+  const role = p => { const sn = avgSnap(p); return p.pos === 'QB' ? mean(clean(p).map(g => g.s.att)) >= 10 : (sn ?? 0) >= 0.15; };
+  const rowsData = tg.players.filter(p => statsFor(p.pos).includes(stat) && role(p)).map(p => {
+    const m = model(T, p, stat, ug.opp); if (!m.n) return null; const L = getLine(ug.gid, p.id, stat); const v = verdict(m, L?.line); return { p, m, L, v };
+  }).filter(Boolean).sort((a,b) => (b.m.proj ?? 0) - (a.m.proj ?? 0));
+  const thisOpp = tg.played.filter(g => g.opp === ug.opp);
+  const anyBook = rowsData.some(x => x.L?.src === 'book');
+  $('#view').innerHTML = `
+  <div class="panel"><div class="gamehead"><span class="opp">${ug.home && !ug.neutral ? 'vs' : ug.neutral ? 'vs' : '@'} ${ug.opp}</span><span class="muted">Week ${ug.week} · ${when.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})} · ${esc(ug.time)} ET${ug.neutral?' · neutral site':''}</span></div>
+    <div class="small muted" style="margin-top:6px">${ug.spread!=null?`Spread: ${spreadText(T, ug)} · Total ${ug.total} · `:''}${ug.opp} defense through ${def.games} games, ranks out of ${nTeams} (1 = toughest).${thisOpp.length?` Already played them in Wk ${thisOpp.map(g=>g.week).join(', ')}.`:''}</div></div>
+  <div><h3 style="margin-bottom:8px">Matchup vs a league-average defense</h3><div class="pm">${posCards}</div></div>
+  <div class="grid2">
+    <div class="panel"><h3>Strengths <span class="muted small" style="text-transform:none;letter-spacing:0">(top 8)</span></h3><ul class="sw-list">${strengths.map(li).join('') || '<li class="muted">No top-8 units.</li>'}</ul></div>
+    <div class="panel"><h3>Weaknesses <span class="muted small" style="text-transform:none;letter-spacing:0">(bottom 8)</span></h3><ul class="sw-list">${weak.map(li).join('') || '<li class="muted">No bottom-8 units.</li>'}</ul></div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <h3>${esc(D.teamsInfo[T].nick)} props vs ${ug.opp}</h3>
+    <div class="chips" role="group" aria-label="Stat"><span class="lbl">Stat</span>${statOpts.map(s => `<button class="chip" data-nstat="${s}" aria-pressed="${s===stat}">${STATS[s].label}</button>`).join('')}</div>
+    ${anyBook ? '' : `<div class="note">No sportsbook lines are loaded for this game yet. Type each player's line into the Line box (it's saved in this browser) and the over/under call updates. To pull DraftKings/FanDuel lines automatically, add a free <a href="https://the-odds-api.com/" target="_blank" rel="noopener">The Odds API</a> key to the data job (README, step 4).</div>`}
+    <div class="tbl"><table><thead><tr><th class="l">Player</th><th>Clean G</th><th>Avg</th><th title="Average against a league-average defense">Adj. avg</th><th title="This defense vs average for his position">Factor</th><th>Model</th><th>Line</th><th>Edge</th><th title="Clean games where he beat this line">Beat line</th><th class="l">Call</th></tr></thead>
+    <tbody>${rowsData.map(({p, m, L, v}) => `<tr><td class="l"><span class="pos">${p.pos}</span> ${esc(p.name)}</td><td>${m.n}</td><td>${one(m.raw)}</td><td>${one(m.adj)}</td><td>${m.f.toFixed(2)}</td><td><b>${one(m.proj)}</b></td>
+      <td><input class="line ${L?.src==='book'?'api':''}" inputmode="decimal" aria-label="Line for ${esc(p.name)}" data-gid="${ug.gid}" data-pid="${p.id}" data-st="${stat}" value="${L ? L.line : ''}" placeholder="—" title="${L?.src==='book'?`Consensus of ${L.books} books`:'Type a line'}"></td>
+      <td>${v.edge!=null ? pct(v.edge) : '—'}</td><td>${v.hr!=null ? `${v.hits}/${m.n}` : '—'}</td><td class="l">${vchip(v)}</td></tr>`).join('') || `<tr><td class="l muted" colspan="10">No players with a regular role for this stat.</td></tr>`}</tbody></table></div>
+    <p class="small muted" style="margin:0">Model = opponent-adjusted average × this defense's factor. Lean over/under: model at least 12% off the line and his clean-game history agrees. Strong over / far under: 25% or more. Orange-bordered lines come from sportsbooks.</p>
+  </div>
+  <details class="panel"><summary>How these numbers are built</summary><ul>
+    <li>Only games without an in-game injury count (play-by-play injury notes, plus a snap-share check against the next week's injury report).</li>
+    <li>Past opponents' defensive numbers leave out their game against ${T}, so one big day doesn't make that defense look weak after the fact.</li>
+    <li>Factors are pulled toward 1.00 when a defense has played few games: 1 + gap × games ÷ (games + 3).</li>
+    <li>Early-season samples are small. Check the final injury report and line movement before betting.</li></ul></details>`;
+  $$('[data-nstat]').forEach(b => b.onclick = () => { S.nextStat = b.dataset.nstat; store.set('nextStat', S.nextStat); renderNext(); });
+  $$('input.line').forEach(inp => inp.onchange = () => { const v = inp.value.trim(); store.set(lkey(inp.dataset.gid, inp.dataset.pid, inp.dataset.st), v === '' ? null : Number(v)); renderNext(); });
+}
+function spreadText(T, g){ const s = g.spread; if (s == null) return ''; const fav = s > 0 ? (g.home ? T : g.opp) : (g.home ? g.opp : T); return `${fav} -${Math.abs(s)}`; }
+
+// ---------- WEEKLY PICKS ----------
+const PICK_STATS = { QB: ['pass_yds','rush_yds'], RB: ['rush_yds','rec_yds','rec','scrim_yds'], WR: ['rec_yds','rec'], TE: ['rec_yds','rec'] };
+const VOLUME = { pass_yds: 170, rush_yds: 35, rec_yds: 35, rec: 3, scrim_yds: 55 };
+function weekPicks(){
+  const wk = Math.min(...TEAMS.map(T => nextGame(T)?.week ?? 99));
+  const out = [];
+  for (const T of TEAMS) { const ug = nextGame(T); if (!ug || ug.week !== wk) continue;
+    for (const p of team(T).players) { const sn = avgSnap(p) ?? 0; if (p.pos !== 'QB' && sn < 0.4) continue; if (p.pos === 'QB' && mean(clean(p).map(g=>g.s.att)) < 15) continue;
+      for (const stat of PICK_STATS[p.pos]) { const m = model(T, p, stat, ug.opp); if (m.n < 3 || m.raw == null) continue;
+        const L = getLine(ug.gid, p.id, stat); const v = verdict(m, L?.line);
+        out.push({ T, p, stat, ug, m, L, v, boost: m.raw ? m.proj / m.raw - 1 : 0 }); } } }
+  return { wk, all: out };
+}
+function renderPicks(){
+  const { wk, all } = weekPicks();
+  const withLine = all.filter(x => x.L && ['sover','over','under','funder'].includes(x.v.k)).sort((a,b) => Math.abs(b.v.edge) - Math.abs(a.v.edge));
+  const vol = all.filter(x => x.m.raw >= VOLUME[x.stat]);
+  const ups = [...vol].sort((a,b) => b.boost - a.boost).filter(x => x.boost > 0.08).slice(0, 15);
+  const downs = [...vol].sort((a,b) => a.boost - b.boost).filter(x => x.boost < -0.08).slice(0, 10);
+  const row = x => `<tr class="click" data-team="${x.T}" data-pid="${x.p.id}"><td class="l"><span class="pos">${x.p.pos}</span> <b>${esc(x.p.name)}</b><br><span class="muted small">${x.T} ${x.ug.home?'vs':'@'} ${x.ug.opp}</span></td><td class="l">${STATS[x.stat].short}</td><td>${one(x.m.raw)}</td><td><b>${one(x.m.proj)}</b></td>`;
+  $('#view').innerHTML = `
+  <div><h2>Week ${wk} picks</h2><p class="small muted" style="margin:4px 0 0">Players with a regular role and at least 3 clean games, across every team playing in Week ${wk}. Tap a row to open the player.</p></div>
+  <div style="display:flex;flex-direction:column;gap:8px"><h3>Against the line</h3>
+  ${withLine.length ? `<div class="tbl"><table><thead><tr><th class="l">Player</th><th class="l">Stat</th><th>Avg</th><th>Model</th><th>Line</th><th>Edge</th><th>Beat line</th><th class="l">Call</th></tr></thead><tbody>
+    ${withLine.map(x => row(x) + `<td>${one(x.L.line)}</td><td>${pct(x.v.edge)}</td><td>${x.v.hits}/${x.m.n}</td><td class="l">${vchip(x.v)}</td></tr>`).join('')}</tbody></table></div>`
+  : `<div class="note">No lines loaded for Week ${wk} yet, so there's nothing to compare against. Lines you type on a team's Next game tab show up here, and sportsbook lines fill in automatically once the data job has an odds key.</div>`}
+  </div>
+  <div class="grid2">
+    <div style="display:flex;flex-direction:column;gap:8px;min-width:0"><h3>Best matchups</h3><p class="small muted" style="margin:0">Model projection most above the player's own average.</p>
+    <div class="tbl"><table><thead><tr><th class="l">Player</th><th class="l">Stat</th><th>Avg</th><th>Model</th><th>Boost</th></tr></thead><tbody>${ups.map(x => row(x) + `<td class="up">${pct(x.boost)}</td></tr>`).join('') || '<tr><td class="l muted" colspan="5">None this week.</td></tr>'}</tbody></table></div></div>
+    <div style="display:flex;flex-direction:column;gap:8px;min-width:0"><h3>Toughest matchups</h3><p class="small muted" style="margin:0">Model projection most below the player's own average.</p>
+    <div class="tbl"><table><thead><tr><th class="l">Player</th><th class="l">Stat</th><th>Avg</th><th>Model</th><th>Drop</th></tr></thead><tbody>${downs.map(x => row(x) + `<td class="down">${pct(x.boost)}</td></tr>`).join('') || '<tr><td class="l muted" colspan="5">None this week.</td></tr>'}</tbody></table></div></div>
+  </div>`;
+  $$('tr.click').forEach(tr => tr.onclick = () => { S.view = 'players'; setTeam(tr.dataset.team, tr.dataset.pid); });
+}
+
+// ---------- DEFENSE RANKS ----------
+function renderDefenses(){
+  const groups = [...new Set(D.metrics.map(m => m.grp))];
+  const ms = D.metrics.filter(m => m.grp === S.defGrp);
+  const sk = S.defSort && ms.find(m => m.k === S.defSort) ? S.defSort : ms[0].k;
+  const opp = new Set(team(S.team).upcoming.map(g => g.opp));
+  const teams = Object.keys(D.defenses).sort((a, b) => (D.defenses[a].rank?.[sk] ?? 99) - (D.defenses[b].rank?.[sk] ?? 99));
+  $('#view').innerHTML = `
+  <div class="chips" role="group" aria-label="Stat group">${groups.map(g => `<button class="chip" data-grp="${esc(g)}" aria-pressed="${g===S.defGrp}">${esc(g)}</button>`).join('')}</div>
+  <p class="small muted" style="margin:0">Sorted by rank (1 = toughest). Tap a column to sort. ● = still on the ${esc(D.teamsInfo[S.team].nick)}' schedule, ○ = already played.</p>
+  <div class="tbl"><table><thead><tr><th class="l">Team</th><th>G</th>${ms.map(m => `<th class="sort ${m.k===sk?'sorted':''}" data-k="${m.k}" title="${esc(m.label)}">${esc(m.label)}</th>`).join('')}</tr></thead>
+  <tbody>${teams.map(t => { const d = D.defenses[t]; const mark = opp.has(t) ? ' <span style="color:var(--orange)">●</span>' : team(S.team).played.some(g=>g.opp===t) ? ' <span class="muted">○</span>' : '';
+    return `<tr><td class="l"><b>${t}</b>${mark}</td><td>${d.games}</td>${ms.map(m => `<td>${fmt(m.k, d[m.k])} ${m.dir!==0?rankChip(m.k, d.rank?.[m.k]):''}</td>`).join('')}</tr>`; }).join('')}
+  <tr><td class="l muted">League avg</td><td></td>${ms.map(m => `<td class="muted">${fmt(m.k, D.league[m.k])}</td>`).join('')}</tr></tbody></table></div>`;
+  $$('[data-grp]').forEach(b => b.onclick = () => { S.defGrp = b.dataset.grp; S.defSort = null; store.set('defGrp', S.defGrp); renderDefenses(); });
+  $$('th.sort').forEach(th => th.onclick = () => { S.defSort = th.dataset.k; renderDefenses(); });
+}
+
+// ---------- HOVER HELP ----------
+const METRIC_DESC = {
+  pts_g: 'Points this defense gives up per game.',
+  epa_play: 'Expected points added per offensive play against them. Negative is good for the defense; it measures how much each play helps the offense score.',
+  succ: 'Share of plays where the offense gained enough yards to stay "on schedule" (40% of needed yards on 1st down, 60% on 2nd, 100% on 3rd/4th).',
+  pass_epa: 'Expected points added per dropback (passes, sacks, scrambles). The best single number for pass defense quality.',
+  pass_yds_g: 'Passing yards allowed per game. Drives the QB passing-yards factor.',
+  ypa: 'Passing yards allowed per pass attempt (sacks excluded).',
+  cmp_pct: 'Completion percentage allowed.',
+  cpoe: 'Completion % over expected: how many more passes opponents complete than the throw difficulty predicts. Positive = coverage is getting beaten.',
+  sack_rate: 'Sacks per dropback. Higher means more pressure on the QB.',
+  int_rate: 'Interceptions per pass attempt.',
+  exp_pass: 'Share of pass attempts that went for 20+ yards. Measures how often the defense gives up big plays through the air.',
+  blitz: 'Share of dropbacks where they sent at least one extra rusher (FTN charting). Style stat, not ranked as good or bad.',
+  rushers: 'Average number of pass rushers per dropback (FTN charting).',
+  qb_rush_g: 'Rushing yards allowed to quarterbacks per game, scrambles included. Drives the QB rushing-yards factor.',
+  rush_epa: 'Expected points added per designed run.',
+  rush_yds_g: 'Rushing yards allowed per game on designed runs.',
+  ypc: 'Yards allowed per carry on designed runs.',
+  stuff: 'Share of runs stopped at or behind the line of scrimmage. Higher is better for the defense.',
+  exp_rush: 'Share of runs that went for 10+ yards.',
+  box: 'Average defenders lined up near the line before the snap on runs. More men in the box = harder running, but more room for receivers.',
+  wr_yds_g: 'Receiving yards allowed to wide receivers per game. Drives the WR receiving-yards factor.',
+  wr_rec_g: 'Catches allowed to wide receivers per game. Drives the WR receptions factor.',
+  wr_tgt_g: 'Targets thrown to wide receivers per game against them. Volume stat, not ranked.',
+  wr_ypt: 'Receiving yards allowed per target to wide receivers. Efficiency, independent of volume.',
+  wr_epa: 'Expected points added per target to wide receivers.',
+  wr_td_g: 'Receiving TDs allowed to wide receivers per game.',
+  wr_out_ypt: 'Yards per target allowed to WRs on throws to the left or right side of the field. A stand-in for how they cover outside receivers.',
+  wr_mid_ypt: 'Yards per target allowed to WRs on throws over the middle. A stand-in for slot coverage.',
+  deep_yds_g: 'Yards allowed per game on passes thrown 20+ yards in the air.',
+  te_yds_g: 'Receiving yards allowed to tight ends per game. Drives the TE receiving-yards factor.',
+  te_rec_g: 'Catches allowed to tight ends per game. Drives the TE receptions factor.',
+  te_ypt: 'Yards allowed per target to tight ends.',
+  te_epa: 'Expected points added per target to tight ends.',
+  te_td_g: 'Receiving TDs allowed to tight ends per game.',
+  rb_scrim_g: 'Rushing plus receiving yards allowed to running backs per game. Drives the RB scrimmage-yards factor.',
+  rb_rush_g: 'Rushing yards allowed to running backs per game. Drives the RB rushing-yards factor.',
+  rb_ypc: 'Yards per carry allowed to running backs.',
+  rb_rec_g: 'Receiving yards allowed to running backs per game.',
+  rb_recs_g: 'Catches allowed to running backs per game.',
+};
+const SHORT_TO_KEY = Object.fromEntries(Object.keys(METRIC_DESC).map(k => [shortLabel(k), k]));
+const TIPS = {
+  'Wk': 'Week of the season.', 'Opponent': 'Opponent, result and score. A red badge means he got hurt in that game, so it is left out of averages.',
+  'Snaps': 'Offensive snaps he played and his share of the team\'s snaps.', 'G': 'Games this defense has played.',
+  'Tgt': 'Targets: passes thrown his way.', 'Rec': 'Receptions (catches).', 'Yds': 'Receiving yards (QB: passing yards).', 'TD': 'Touchdowns.',
+  'aDOT': 'Average depth of target: how far downfield, on average, passes to him travelled in the air. High = deep threat, low = short/underneath role.',
+  'Outside': 'Targets-yards on throws to the left or right side of the field (RB: carries-yards on runs outside the tackles).',
+  'Middle': 'Targets-yards on throws over the middle of the field. Slot receivers and TEs live here.',
+  'Inside': 'Carries-yards on runs up the middle.', 'Deep': 'Targets-yards on passes thrown 20+ yards in the air.',
+  'YAC': 'Yards after catch: yards gained after the ball was caught.', 'Tgt %': 'Target share: his share of the team\'s targets that game.',
+  'Cmp/Att': 'Completions / pass attempts.', 'INT': 'Interceptions thrown.', 'Sk': 'Times sacked.', 'EPA': 'Expected points added on his passing plays. Positive = he moved the offense toward points.',
+  'Car': 'Carries (rush attempts).', 'Rush': 'Rushing yards.', 'Blitzed': 'Share of his dropbacks where the defense blitzed.',
+  'YPC': 'Yards per carry.', 'Rec yds': 'Receiving yards.',
+  'Line': 'Sportsbook line for this stat (consensus of US books) or one you typed. O = he went over, U = under.',
+  'Model': 'What the model expected: his opponent-adjusted average × that defense\'s factor for his position.',
+  'Clean G': 'Games played without an in-game injury. Only these feed the averages.', 'Avg': 'Plain average in clean games.',
+  'Adj. avg': 'Opponent-adjusted average: what he would average against a league-average defense.',
+  'Factor': 'How generous this defense is to his position vs league average. 1.10 = allows 10% more than average; 0.90 = 10% less.',
+  'Edge': 'How far the model is above (+) or below (−) the line, as a percent of the line.',
+  'Beat line': 'In how many of his clean games he went over this line.',
+  'Call': 'Lean over/under: model 12%+ off the line and his history agrees. Strong over / far under: 25%+ off.',
+  'Player': 'Position, player and team.', 'Stat': 'The prop stat being compared.', 'Game': 'Next opponent.',
+  'Boost': 'How much higher the model projection is than his own average, because of the matchup.', 'Drop': 'How much lower the model projection is than his own average, because of the matchup.',
+  'Pass yds': 'Passing yards.', 'Rush yds': 'Rushing yards.', 'Scrim yds': 'Rushing + receiving yards.', 'Team': 'Team abbreviation.',
+};
+function tipFor(th){
+  const k = th.dataset.k || SHORT_TO_KEY[th.textContent.trim()] || D.metrics.find(m => m.label === th.textContent.trim())?.k;
+  if (k && METRIC_DESC[k]) return { title: M[k].label + (M[k].dir === 0 ? '' : ' · rank 1 = toughest'), body: METRIC_DESC[k] };
+  const t = TIPS[th.textContent.trim()]; return t ? { title: th.textContent.trim(), body: t } : null;
+}
+const tipEl = document.createElement('div'); tipEl.className = 'tip'; tipEl.hidden = true; tipEl.setAttribute('role','tooltip'); document.body.appendChild(tipEl);
+let tipTimer = null, tipFor_ = null;
+function showTip(th){ const t = tipFor(th); if (!t) return; tipEl.innerHTML = `<b>${esc(t.title)}</b>${esc(t.body)}`; tipEl.hidden = false; tipFor_ = th;
+  const r = th.getBoundingClientRect(), w = tipEl.offsetWidth, hgt = tipEl.offsetHeight;
+  let x = Math.min(Math.max(16, r.left + r.width/2 - w/2), innerWidth - w - 16), y = r.bottom + 8; if (y + hgt > innerHeight - 8) y = r.top - hgt - 8;
+  tipEl.style.left = x + 'px'; tipEl.style.top = y + 'px'; }
+function hideTip(){ clearTimeout(tipTimer); tipEl.hidden = true; tipFor_ = null; }
+function applyTips(){ $$('#view th').forEach(th => { if (!tipFor(th)) return; th.removeAttribute('title'); th.dataset.tip = '1'; th.tabIndex = 0; }); }
+document.addEventListener('pointerover', e => { const th = e.target.closest?.('th[data-tip]'); if (!th || e.pointerType === 'touch') return; clearTimeout(tipTimer); tipTimer = setTimeout(() => showTip(th), 450); });
+document.addEventListener('pointerout', e => { if (e.target.closest?.('th[data-tip]')) hideTip(); });
+document.addEventListener('focusin', e => { const th = e.target.closest?.('th[data-tip]'); if (th) showTip(th); });
+document.addEventListener('focusout', hideTip);
+document.addEventListener('pointerdown', e => { const th = e.target.closest?.('th[data-tip]'); if (e.pointerType === 'touch' && th) { if (tipFor_ === th) hideTip(); else showTip(th); } else if (!th) hideTip(); });
+window.addEventListener('scroll', hideTip, { passive: true });
+new MutationObserver(() => { hideTip(); applyTips(); }).observe($('#view'), { childList: true, subtree: true });
+
+render();
+applyTips();
+
+// ---------- ASK CLAUDE ----------
+const findPlayers = q => { const n = String(q||'').toLowerCase(); const out = [];
+  for (const T of TEAMS) for (const p of team(T).players) if (p.name.toLowerCase().includes(n)) out.push({ team: T, name: p.name, pos: p.pos, id: p.id }); return out.slice(0, 8); };
+function playerReport(teamArg, name){
+  let hits = findPlayers(name); if (teamArg) hits = hits.filter(h => h.team === String(teamArg).toUpperCase()) .concat(hits.filter(h => h.team !== String(teamArg).toUpperCase()));
+  if (!hits.length) throw new Error(`No player matching "${name}"`);
+  const T = hits[0].team, p = team(T).players.find(x => x.id === hits[0].id), ng = nextGame(T);
+  const log = p.games.map(g => { const tg = pgame(T, g.gid); return { wk: g.w, opp: tg.opp, home: tg.home, result: `${tg.result} ${tg.us}-${tg.them}`, snapPct: g.sp, injuryExcluded: g.inj?.note || null,
+    pass: p.pos === 'QB' ? `${g.s.cmp}/${g.s.att} ${g.s.pyd}y ${g.s.ptd}TD ${g.s.int}INT` : undefined, rush: `${g.s.car}-${g.s.ryd}`, rec: `${g.s.rec}/${g.s.tgt} ${g.s.yds}y`, td: g.s.rtd + g.s.td,
+    targetsOutsideMiddleDeep: p.pos !== 'QB' ? { outside: g.x.out, middle: g.x.mid, deep: g.x.deep, adot: g.x.adot } : undefined,
+    lines: Object.fromEntries(statsFor(p.pos).map(s => [s, getLine(g.gid, p.id, s)?.line ?? null]).filter(e => e[1] != null)) }; });
+  const proj = ng ? Object.fromEntries(statsFor(p.pos).map(s => { const m = model(T, p, s, ng.opp); const L = getLine(ng.gid, p.id, s); const v = verdict(m, L?.line);
+    return [s, { cleanGames: m.n, avg: +one(m.raw), adjAvg: +one(m.adj), defenseFactor: +m.f.toFixed(2), model: +one(m.proj), line: L?.line ?? null, lineSource: L?.src ?? null, call: v.label, beatLineInCleanGames: v.hr != null ? `${v.hits}/${m.n}` : null }]; })) : null;
+  return { team: T, name: p.name, pos: p.pos, otherMatches: hits.slice(1, 4).map(h => `${h.name} (${h.team})`), gameLog: log, nextGame: ng ? { week: ng.week, opp: ng.opp, home: ng.home, date: ng.date, spread: spreadText(T, ng), total: ng.total } : null, nextGameProjections: proj,
+    injuryReport: p.report.slice(-3) };
+}
+function defenseReport(T){ T = String(T||'').toUpperCase(); const d = D.defenses[T]; if (!d) throw new Error(`Unknown team ${T}. Use abbreviations like CIN, BAL, KC.`);
+  return { team: T, games: d.games, note: 'rank 1 = toughest defense out of ' + nTeams, metrics: Object.fromEntries(D.metrics.map(m => [m.label, { value: d[m.k], rank: m.dir !== 0 ? d.rank?.[m.k] : null, leagueAvg: D.league[m.k] }])) }; }
+function teamOverview(T){ T = String(T||'').toUpperCase(); const t = team(T); if (!t) throw new Error(`Unknown team ${T}`);
+  return { team: T, name: tname(T), record: record(T), played: t.played.map(g => `Wk${g.week} ${g.home?'vs':'@'} ${g.opp} ${g.result} ${g.us}-${g.them}`), upcoming: t.upcoming.slice(0, 4).map(g => `Wk${g.week} ${g.home?'vs':'@'} ${g.opp} ${g.date}${g.spread!=null?' '+spreadText(T,g)+' O/U '+g.total:''}`),
+    players: t.players.filter(p => (avgSnap(p) ?? 0) >= 0.2 || p.pos === 'QB').map(p => ({ name: p.name, pos: p.pos, snapPct: +(avgSnap(p) ?? 0).toFixed(2), cleanGames: clean(p).length })) }; }
+function picksReport(){ const { wk, all } = weekPicks(); const top = all.filter(x => x.m.raw >= VOLUME[x.stat]).sort((a,b) => Math.abs(b.boost) - Math.abs(a.boost)).slice(0, 25);
+  return { week: wk, linesLoaded: all.filter(x => x.L).length, rows: top.map(x => ({ player: x.p.name, team: x.T, opp: x.ug.opp, stat: x.stat, avg: +one(x.m.raw), model: +one(x.m.proj), boostVsAvg: pct(x.boost), line: x.L?.line ?? null, call: x.v.label })) }; }
+const TOOLS = [
+  { name: 'player_report', description: 'Full report for one player: game log (with injury-excluded games marked, snaps, target location splits, saved lines) and next-game projections per stat with line, edge call and how often he beat that line. Use for any question about a specific player.', inputSchema: { type: 'object', properties: { name: { type: 'string', description: 'Player name or part of it' }, team: { type: 'string', description: 'Optional team abbreviation, e.g. CIN' } }, required: ['name'] }, execute: i => playerReport(i.team, String(i.name)) },
+  { name: 'defense_report', description: 'All defensive metrics for one team with league rank (1 = toughest) and league average. Use for matchup and strengths/weaknesses questions.', inputSchema: { type: 'object', properties: { team: { type: 'string', description: 'Team abbreviation, e.g. BAL' } }, required: ['team'] }, execute: i => defenseReport(i.team) },
+  { name: 'team_overview', description: 'A team\'s record, results, next games with spread/total, and its regular-role offensive players.', inputSchema: { type: 'object', properties: { team: { type: 'string' } }, required: ['team'] }, execute: i => teamOverview(i.team) },
+  { name: 'weekly_picks', description: 'League-wide list for the coming week: players whose model projection differs most from their average, with any loaded lines and over/under calls.', execute: () => picksReport() },
+];
+function screenContext(){ const T = S.team; const p = team(T).players.find(x => x.id === S.player); const ng = nextGame(T);
+  return `Current screen: ${S.view} tab, team ${T} (${tname(T)}, ${record(T)})${S.view==='players'&&p?`, viewing ${p.name} (${p.pos}), stat ${S.stat}`:''}${ng?`, next game Wk ${ng.week} ${ng.home?'vs':'@'} ${ng.opp}`:''}.`; }
+const RULES = () => `You are the research assistant inside "Edge", an NFL player-prop research web app. The app's data: nflverse ${D.meta.season} season (play-by-play, box scores, snap counts, injury reports), league data through Week ${D.meta.lastWeekWithPbp}, generated ${D.meta.generated.slice(0,10)}.
+How the app's model works: for each player it drops games where he was injured in-game, scales each past game by how generous that opponent's defense is to his position (opponent's numbers exclude that game; factor shrunk toward 1 for small samples), averages that "adjusted" number, then multiplies by the next opponent's factor. Calls: Lean over/under = model 12%+ off the line and his history agrees; Strong over/Far under = 25%+.
+Rules: Use the tools to look up numbers; never make up stats or lines. If a line isn't loaded, say so and suggest the user type it on the Next game tab. Mention when a sample is small (under 4 clean games). Keep answers short and scannable for a phone: lead with the answer, then the 2-4 numbers that matter. Plain text, short lines, no tables. You can't see live odds, news or injuries beyond the app data.
+${screenContext()}`;
+let sample = null, turns = [], ctl = null;
+const msgs = $('#msgs');
+function addMsg(cls, text){ const d = document.createElement('div'); d.className = 'msg ' + cls; d.textContent = text; msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight; return d; }
+function suggestions(){
+  const T = S.team, p = team(T).players.find(x => x.id === S.player), ng = nextGame(T);
+  const qs = [p ? `Should I take ${p.name} over or under${ng?` vs ${ng.opp}`:''}?` : null, ng ? `What are ${ng.opp}'s biggest defensive weaknesses?` : null, 'Who are the best prop spots this week?'].filter(Boolean);
+  const box = document.createElement('div'); box.className = 'sugg'; box.innerHTML = qs.map(q => `<button type="button">${esc(q)}</button>`).join('');
+  $$('button', box).forEach(b => b.onclick = () => { $('#askinput').value = b.textContent; $('#askform').requestSubmit(); }); msgs.appendChild(box);
+}
+function resetChat(){ ctl?.abort(); turns = []; msgs.innerHTML = ''; addMsg('sys', 'Answers use the stats in this app. Each message uses your own Claude usage.'); suggestions(); }
+$('#askfab').onclick = () => { $('#drawer').hidden = false; $('#askfab').hidden = true; if (!msgs.children.length) resetChat(); $('#askinput').focus(); };
+$('#askclose').onclick = () => { $('#drawer').hidden = true; $('#askfab').hidden = false; };
+$('#askclear').onclick = resetChat;
+$('#askinput').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#askform').requestSubmit(); } });
+$('#askform').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (ctl) { ctl.abort(); return; }
+  const q = $('#askinput').value.trim(); if (!q || !sample) return;
+  $('#askinput').value = ''; $$('.sugg', msgs).forEach(s => s.remove());
+  addMsg('u', q); turns.push({ role: 'user', content: q });
+  const bubble = addMsg('a', 'Thinking…');
+  ctl = new AbortController(); $('#asksend').textContent = 'Stop';
+  try {
+    const { text, truncated } = await sample([{ role: 'user', content: RULES() }, ...turns.slice(-10)], {
+      signal: ctl.signal, tools: TOOLS, onText: ({ text }) => { bubble.textContent = text; msgs.scrollTop = msgs.scrollHeight; } });
+    turns.push({ role: 'assistant', content: text });
+    if (truncated) addMsg('sys', 'Answer was cut short. Try a narrower question.');
+  } catch (err) {
+    bubble.textContent = err?.text || '';
+    if (!bubble.textContent) bubble.remove();
+    turns.pop();
+    const copy = { not_granted: 'Claude access was declined for this page.', sampling_disabled: 'Claude isn\'t available for this account.', rate_limited: 'Too many questions at once. Wait a moment and try again.', session_expired: 'Sign in to Claude again, then retry.', refused: 'Claude couldn\'t answer that one. Try rephrasing.', tools_unavailable: 'This view can\'t look up stats for Claude. Open the page in the Claude app or claude.ai.' }[err?.code];
+    if (err?.code !== 'cancelled') addMsg('sys', copy || 'Something went wrong. Try again.');
+    if (['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed'].includes(err?.code)) { $('#askform').hidden = true; }
+  } finally { ctl = null; $('#asksend').textContent = 'Send'; }
+});
+try { sample = window.claude?.use ? await window.claude.use('sample') : null; } catch(e) { sample = null; }
+if (sample) $('#askfab').hidden = false;
+})();
+</script>

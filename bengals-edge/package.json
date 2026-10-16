@@ -1,0 +1,14 @@
+{
+  "name": "bengals-edge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Bengals player game logs vs opposing defenses, with injury games excluded, plus upcoming matchup previews.",
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "data": "node scripts/build-data.mjs",
+    "bundle": "node scripts/bundle.mjs",
+    "build": "node scripts/build-data.mjs && node scripts/bundle.mjs",
+    "serve": "npx --yes http-server public -p 8080 -c-1"
+  }
+}

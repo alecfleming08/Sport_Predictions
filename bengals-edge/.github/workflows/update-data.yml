@@ -1,0 +1,51 @@
+name: Update data
+
+# nflverse refreshes play-by-play and player stats overnight after games,
+# snap counts within a day or two, and injury reports Wed–Fri.
+# Prop lines are pulled Thursday and Saturday (one pull of every game ≈ 80 Odds API credits;
+# the free plan has 500/month, so two pulls a week fits only if you limit it — see README).
+on:
+  schedule:
+    - cron: '0 11 * * 2'   # Tue 07:00 ET — after Sunday + Monday games
+    - cron: '0 11 * * 4'   # Thu 07:00 ET — injury report + early prop lines
+    - cron: '0 15 * * 6'   # Sat 11:00 ET — final injury report + Sunday prop lines
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Build data (with prop lines on Thu/Sat or manual runs)
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+        run: |
+          DOW=$(date -u +%u)
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "$DOW" = "4" ] || [ "$DOW" = "6" ]; then
+            node scripts/build-data.mjs --season 2026 --odds
+          else
+            node scripts/build-data.mjs --season 2026
+          fi
+      - run: node scripts/bundle.mjs
+      - name: Commit refreshed data
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add public dist data
+          git diff --cached --quiet || git commit -m "Data refresh $(date -u +%F)"
+          git push
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: public }
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: { name: github-pages }
+    steps:
+      - uses: actions/deploy-pages@v4
